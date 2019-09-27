@@ -10,3 +10,4 @@
 data/password.txt
 .vscode/settings.json
 .vscode/extensions.json
+.travis.yml
