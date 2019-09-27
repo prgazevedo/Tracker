@@ -7,3 +7,4 @@
 .private_key.h
 .DS_Store
 .data/password.txt
+data/password.txt
