@@ -8,3 +8,5 @@
 .DS_Store
 .data/password.txt
 data/password.txt
+.vscode/settings.json
+.vscode/extensions.json
