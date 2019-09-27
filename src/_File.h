@@ -33,11 +33,14 @@ String _readPassword(){
   }
 
   
-  Serial.println("Password file open:");
+  Serial.println("Password file open");
   while(file.available()){
     password+=(char)(file.read());
   }
+  Serial.println("Password file read");
   file.close();
+  Serial.println("Password file close");
+  Serial.println("Password is: "+(String)password);
   return password;
 }
 

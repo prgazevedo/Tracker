@@ -4,7 +4,7 @@
 // _Main DEFINITIONS
 // Possible roles SENDER or RECEIVER
 #define _ROLE  1 //SENDER=0 RECEIVER=1
-#define _SUBVERSION "20"
+#define _SUBVERSION "20.1"
 
 //POWER DEFINITIONS
 #define BATTERY_PIN 13
