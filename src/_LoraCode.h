@@ -30,20 +30,24 @@ long lastSendTime = 0;
 byte destinationAddress = 0xFF;      // destination to send to 11111111
 byte localAddress = 0x01;     // address of this device 00000001
 */
-void _LoraInit(){
-  writeSerial("_LoraInit");
-    //LORA INIT
-  SPI.begin(_SCK,_MISO,_MOSI,_SS); //INIT SERIAL WITH LORA
-  LoRa.setPins(_SS,_RST,_DI00); //PINOUT to be used by LORA library (deve ser chamado antes do LoRa.begin)
-  
-  //INIT LORA BAND
-  if (!LoRa.begin(_BAND))
+
+void startLora(){
+    if (!LoRa.begin(_BAND))
   {
-    OLED_write("Starting LoRa failed!");
-    writeSerial("Starting LoRa failed!");
+    OLED_write("ReStarting LoRa failed!");
+    writeSerial("ReStarting LoRa failed!");
     while (1);
   }
-  LoRa.enableCrc();
+  else
+  {
+    /* code */
+    OLED_write("ReStarted LoRa !");
+    writeSerial("ReStarted LoRa !");
+  }
+}
+
+void setupLoraSettings(){
+    LoRa.enableCrc();
   if(_MAXPOWER){
     LoRa.setTxPower(_MAX_TX_POWER);
     writeSerial("LoRa is using Power:"+String(_MAX_TX_POWER));
@@ -57,6 +61,18 @@ void _LoraInit(){
      LoRa.setSpreadingFactor(_SPREADING_FACTOR); // Supported values are between 6 and 12
      LoRa.setCodingRate4(_CODING_RATE); // Supported values are between 5 and 8
   }
+}
+
+
+void _LoraInit(){
+  writeSerial("_LoraInit");
+    //LORA INIT
+  SPI.begin(_SCK,_MISO,_MOSI,_SS); //INIT SERIAL WITH LORA
+  LoRa.setPins(_SS,_RST,_DI00); //PINOUT to be used by LORA library (deve ser chamado antes do LoRa.begin)
+  
+  //INIT LORA BAND
+  startLora();
+  setupLoraSettings();
   
   OLED_write("LoRa Initial success!");
   writeSerial("LoRa Initial success!");
@@ -64,14 +80,25 @@ void _LoraInit(){
 }
 
 
-
 void _sendPacket() {
    writeSerial("_sendMessage");
+  //INIT LORA BAND
+  if( (LoRa.getSignalBandwidth()!= _SIGNAL_BANDWIDTH) &&
+  (LoRa.getSpreadingFactor()!= _SPREADING_FACTOR) )
+  {
+    writeSerial("Restart Lora Radio");
+     writeSerial("getSignalBandwidth returned: "+String(LoRa.getSignalBandwidth()));
+     writeSerial("getSpreadingFactor returned: "+String(LoRa.getSpreadingFactor()));
 
+    startLora();
+    setupLoraSettings();
+  }
+  //LoRa.dumpRegisters(Serial);
   LoRa.beginPacket();
   writeSerial("beginPacket");
   payload_pdata_size = sizeof(pdata);
   payload_gdata_size = sizeof(gdata);
+  
   LoRa.write(payload_pdata_size);      // pdata size
   pdata.ID = packetID++;
   pdata.timeMillis = millis();                        // increment message ID
@@ -80,10 +107,14 @@ void _sendPacket() {
    //send gdata: Latitude and Longitude
   LoRa.write(payload_gdata_size);      // pdata size
   LoRa.write((uint8_t*)&gdata, sizeof(gdata));
+   
 
-
+  writeSerial("FinishWritePacket");
   LoRa.endPacket(); 
-  LoRa.sleep();
+  writeSerial("endPacket");
+  writeSerial("goingToSleep");
+  //LoRa.sleep();
+  
 }
 
 

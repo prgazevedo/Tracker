@@ -20,10 +20,10 @@ void writeSerial(String toWrite)
 {
   if(_ROLE==0)
   {
-    Serial.println("Module SENDER:"+toWrite);
+    Serial.println("Module SENDER: "+toWrite);
   }
   else{
-    Serial.println("Module RECEIVER:"+toWrite);
+    Serial.println("Module RECEIVER: "+toWrite);
   }
 }
 
@@ -48,19 +48,20 @@ String _log_additional_data(){
 void _log_packet_data( ){
    if(_ROLE==0)
     {
-      Serial.println("packet sent:");
+      writeSerial("packet sent:");
     }
     else{
-      Serial.println("packet received:");
+      writeSerial("packet received:");
     }
 
    writeSerial(" counter:"+String(pdata.ID));
    writeSerial(" time_stamp:"+String(pdata.timeMillis));
    writeSerial(" latitude:"+gs_current_latitude);
    writeSerial(" longitude:"+gs_current_longitude);
-   writeSerial(" payload_pdata_size size:"+String(payload_pdata_size,DEC));
-    writeSerial(" payload_gdata_size size:"+String(payload_gdata_size,DEC));
-   writeSerial(" Additional data:"+_log_additional_data());
+  writeSerial("sizeof packetdata (ID+TimeStamp):"+String(payload_pdata_size,DEC)+" bytes");
+   writeSerial(" sizeof gpsdata (lat+long):"+String(payload_gdata_size,DEC)+" bytes");
+  writeSerial(" total size of packet is:"+String((payload_pdata_size+payload_gdata_size+sizeof(payload_pdata_size)+sizeof(payload_gdata_size),DEC)+" bytes"));
+   writeSerial(" Additional data (not sent):"+_log_additional_data());
    if(_ROLE==1)
     {
         writeSerial(" RSSI: "+String(rssi_value));

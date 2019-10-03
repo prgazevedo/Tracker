@@ -12,8 +12,8 @@ void printErrorCodes();
 //Connect to server MQTT
 void _connectMQTTServer() {
   sTopic =TOPIC_NAME_HEADER ;//+ s_chipid;
-  Serial.println("connectMQTTServer:Connecting to MQTT Server...");
-  Serial.println("Configured MAC for MQTT is: "+s_chipid);
+  writeSerial("connectMQTTServer:Connecting to MQTT Server...");
+  writeSerial("Configured MAC for MQTT is: "+s_chipid);
   OLED_write("MQTT To:" MQTT_SERVER); 
   //Client MQTT,server URL and port + Wifi
   pubClient.begin(MQTT_SERVER, MQTT_SERVER_PORT ,wifiClient);
@@ -21,20 +21,20 @@ void _connectMQTTServer() {
     
   if (pubClient.connect(s_chipid.c_str())) {
     //if success connecting
-    Serial.println("MQTT connected to: " MQTT_SERVER " Topic Name: "+sTopic);
+    writeSerial("MQTT connected to: " MQTT_SERVER " Topic Name: "+sTopic);
     OLED_write("OK!Topic:" +sTopic);
   } else {
-    Serial.println("NOT Connected to MQTT server: " MQTT_SERVER " Topic Name: "+sTopic);
+    writeSerial("NOT Connected to MQTT server: " MQTT_SERVER " Topic Name: "+sTopic);
     OLED_write("MQTT NOT OK!");
     printErrorCodes();
   }
 
   
     if (pubClient.publish(sTopic, "hello from PWD Receiver M1")) {
-      Serial.println("Initial Publish ok at: " MQTT_SERVER " under topic: "+sTopic);
+      writeSerial("Initial Publish ok at: " MQTT_SERVER " under topic: "+sTopic);
     }
     else {
-      Serial.println("Initial Publish failed");
+      writeSerial("Initial Publish failed");
     }
   
 }
@@ -90,10 +90,8 @@ String createJsonString() {
 
 
 void printErrorCodes(){
-    Serial.print("error = ");
-    Serial.println(lwMQTTErr(pubClient.lastError()));
-    Serial.print("returnCode = ");
-    Serial.println(lwMQTTErrConnection(pubClient.returnCode()));
+    writeSerial("error = "+lwMQTTErr(pubClient.lastError()));
+    writeSerial("returnCode = "+lwMQTTErrConnection(pubClient.returnCode()));
 }
 
 
@@ -101,11 +99,11 @@ void publishData(String message){
      
       //Publish in the topic 
         if (pubClient.publish(sTopic, message)) {
-          Serial.println("Publish ok at: " MQTT_SERVER " under topic: " +sTopic);
+          writeSerial("Publish ok at: " MQTT_SERVER " under topic: " +sTopic);
           _OLED_PUB_DATA("PUB:OK");
         }
         else {
-          Serial.println("Publish failed at:" MQTT_SERVER " under topic: " +sTopic);
+          writeSerial("Publish failed at:" MQTT_SERVER " under topic: " +sTopic);
           _OLED_PUB_DATA("PUB:NOK");
           printErrorCodes();
         }
@@ -118,7 +116,7 @@ void publishData(String message){
 void _publishLocationData(){
       //create the json to send to the mqtt server
       String msg = createJsonString();
-      Serial.print(" _publishLocationDataPublish message: "+msg);
+      writeSerial(" _publishLocationDataPublish message: "+msg);
       publishData(msg);
 }
 

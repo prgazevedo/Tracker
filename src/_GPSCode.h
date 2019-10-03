@@ -78,6 +78,9 @@ void _encodeGPS(){
 
 
 void _encodeLocationSummary(){
+  writeSerial("-----------------------------");
+  writeSerial("_encodeLocationSummary Called");
+  writeSerial("-----------------------------");
   _writeGPSHeader();
   printInt(gps.satellites.value(), gps.satellites.isValid(), 5);
   printFloat(gps.hdop.hdop(), gps.hdop.isValid(), 6, 1);
@@ -98,7 +101,7 @@ void _encodeLocationSummary(){
   smartDelay(1000);
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
-    Serial.println(F("No GPS data received: check wiring"));
+    writeSerial(F("No GPS data received: check wiring"));
 }
 
 GpsData getRawGPSData(){
@@ -149,35 +152,35 @@ String getCoordString(coordToSend rawData){
 
 
 String _encodeLocation(){
-  Serial.println("_encodeLocation called"); 
+  writeSerial("_encodeLocation called"); 
   
   gdata = getRawGPSData();
   gs_current_latitude = getCoordString(gdata.latitude);
   gs_current_longitude = getCoordString(gdata.longitude);
   getAdditionalDataString(gdata);
- Serial.println("_encodeLocation has latitude: "+gs_current_latitude+ " and longitude: "+gs_current_longitude);
- Serial.println("_encodeLocation has addtional data: "+_log_additional_data());
+ writeSerial("_encodeLocation has latitude: "+gs_current_latitude+ " and longitude: "+gs_current_longitude);
+ writeSerial("_encodeLocation has addtional data: "+_log_additional_data());
    String sEncode="LatLong- latitude: "+gs_current_latitude+ " and longitude: "+gs_current_longitude;
   return sEncode;
 }
 
 
 void basicGPSDebug(){
+  writeSerial("basicGPSDebug called");
   if (Serial2.available()) Serial.println(Serial2.read());
   else Serial.println("No data available");
 }
 
 void _getGPS()
 {
-    Serial.println("_getGPS called");
+    writeSerial("_getGPS called");
     //basicGPSDebug();
     
     _encodeGPS();
     //_encodeTestStream();
     //_encodeLocationSummary();
-    //Serial.println("_encodeLocationSummary called");
     _encodeLocation();
-    Serial.println("_encodeLocation called");
+
  
  
 }

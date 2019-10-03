@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+  
 #include "_Definitions.h"
 #include "_Global.h"
 #include "images.h"
@@ -38,14 +38,14 @@ void OLED_write(String toWrite){
 
     display.drawString(0, line, toWrite);
     increaseLine();
-    //Serial.println("OLED_write called:"+toWrite);
+    //writeSerial("OLED_write called:"+toWrite);
     
     display.display(); //show
 }
 
 void OLED_write(int a, int b, String toWrite){
     display.drawString(a, b, toWrite);
-    //Serial.println("OLED_write called:"+toWrite+ " at a:" +a+" b:"+b);
+    //writeSerial("OLED_write called:"+toWrite+ " at a:" +a+" b:"+b);
     display.display(); //show
 }
 

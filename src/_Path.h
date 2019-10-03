@@ -9,7 +9,7 @@ void _addCoordsToPath(String lat, String lng){
   gPath.lat = lat;
   gPath.lng = lng;
   myList.push_back(gPath);
-  Serial.println("_addCoordsToPath added: lat: "+lat+" lng: "+lng);
+  writeSerial("_addCoordsToPath added: lat: "+lat+" lng: "+lng);
   if(bFirst)
   {
     bFirst=false;
@@ -27,6 +27,6 @@ void _encodePath(){
     ++itr;
     if(itr != myList.end()){gspath+=",";}
   }
-  Serial.println("_encodePath has Path:"+gspath);
+  writeSerial("_encodePath has Path:"+gspath);
       
 }

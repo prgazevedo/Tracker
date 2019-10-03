@@ -91,7 +91,7 @@ void _httpServerLoop() {
   // We need to call both loop functions here
   secureServer.loop();
   insecureServer.loop();
-  Serial.println("Servers loops called.");
+  writeSerial("Servers loops called.");
   // Other code would go here...
   delay(1);
 }

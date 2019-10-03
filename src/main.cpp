@@ -26,7 +26,7 @@
 #include <LoRa.h> //Lora Comms Lib
 #include "_CStrings.h" //CString mem reduction code
 #include "_SerialCode.h" //Serial lib
-#include "_oledCode.h" //OLED code
+#include "_OledCode.h" //OLED code
 #include "_GPSCode.h" //GPS code
 #include "_LoraCode.h" //Lora Code
 #include "_Definitions.h"
@@ -85,7 +85,8 @@ void loop()
   }
   if(_ROLE==0)
   {
-     _light_sleep();
+    //_ROLE==SENDER
+     //_light_sleep();
 
      //_LEDBlink(); //SAVE POWER
      if (_sendTimer()){  
@@ -102,18 +103,18 @@ void loop()
     _Receive();
     if(_receiveTimer())
     {
-      Serial.println("MQTT  _publishLocationData called"); 
+      writeSerial("MQTT  _publishLocationData called"); 
        _publishLocationData();
     }
     if(_checkhttpserverTimer())
     {
       
       if(bPortalStarted){
-        Serial.println("_handlePortal called"); 
+        writeSerial("_handlePortal called"); 
         _handlePortal();
       }
       else {
-        Serial.println("_httpServerLoop called"); 
+        writeSerial("_httpServerLoop called"); 
         _updateWifiState();
         //_checkWifiState();
         
