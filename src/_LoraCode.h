@@ -21,10 +21,7 @@
 #include "_Global.h"
 #include "_Path.h"
 
-// count of outgoing messages
-byte packetID = 0;            
-//Time of last Lora data packet
-long lastSendTime = 0;
+
 
 /*
 byte destinationAddress = 0xFF;      // destination to send to 11111111
@@ -32,18 +29,8 @@ byte localAddress = 0x01;     // address of this device 00000001
 */
 
 void startLora(){
-    if (!LoRa.begin(_BAND))
-  {
-    OLED_write("ReStarting LoRa failed!");
-    writeSerial("ReStarting LoRa failed!");
-    while (1);
-  }
-  else
-  {
-    /* code */
-    OLED_write("ReStarted LoRa !");
-    writeSerial("ReStarted LoRa !");
-  }
+    if (!LoRa.begin(_BAND)) writeSerial("ReStarting LoRa failed!");
+    else writeSerial("ReStarted LoRa !");
 }
 
 void setupLoraSettings(){
@@ -51,15 +38,17 @@ void setupLoraSettings(){
   if(_MAXPOWER){
     LoRa.setTxPower(_MAX_TX_POWER);
     writeSerial("LoRa is using Power:"+String(_MAX_TX_POWER));
+  } else {
+    LoRa.setTxPower(_DEFAULT_TX_POWER);
+    writeSerial("LoRa is using Power:"+String(_MAX_TX_POWER));
   }
-  
   //For Range
   if(_LONG_RANGE)
   {
-     writeSerial("LoRa is using Long Range settings- SignalBandwidth: "+String(_SIGNAL_BANDWIDTH)+"Hz SpreadingFactor: "+String(_SPREADING_FACTOR)+"(6-12) CodingRate:"+String(_CODING_RATE)); 
-     LoRa.setSignalBandwidth(_SIGNAL_BANDWIDTH); // Supported values are 7.8E3, 10.4E3, 15.6E3, 20.8E3, 31.25E3, 41.7E3, 62.5E3, 125E3, and 250E3.
-     LoRa.setSpreadingFactor(_SPREADING_FACTOR); // Supported values are between 6 and 12
-     LoRa.setCodingRate4(_CODING_RATE); // Supported values are between 5 and 8
+     writeSerial("LoRa is using Long Range settings- SignalBandwidth: "+String(_DEFAULT_SIGNAL_BANDWIDTH)+"Hz SpreadingFactor: "+String(_DEFAULT_SPREADING_FACTOR)+"(6-12) CodingRate:"+String(_DEFAULT_CODING_RATE)); 
+     LoRa.setSignalBandwidth(_DEFAULT_SIGNAL_BANDWIDTH); // Supported values are 7.8E3, 10.4E3, 15.6E3, 20.8E3, 31.25E3, 41.7E3, 62.5E3, 125E3, and 250E3.
+     LoRa.setSpreadingFactor(_DEFAULT_SPREADING_FACTOR); // Supported values are between 6 and 12
+     LoRa.setCodingRate4(_DEFAULT_CODING_RATE); // Supported values are between 5 and 8
   }
 }
 
@@ -73,134 +62,101 @@ void _LoraInit(){
   //INIT LORA BAND
   startLora();
   setupLoraSettings();
-  
-  OLED_write("LoRa Initial success!");
-  writeSerial("LoRa Initial success!");
-  
+  OLED_write("_LoraInit success!");
+  writeSerial("_LoraInit success!");
 }
 
+
+void putGPSData(){
+  LoRa.write((uint8_t*)&gdata, sizeof(gdata));
+  writeSerial("putGPSData test - size of gdata is:"+ String(sizeof(gdata)));
+}
+
+bool isLoRaRadioUnConfigured(){
+  if( (LoRa.getSignalBandwidth()!= _DEFAULT_SIGNAL_BANDWIDTH) &&
+  (LoRa.getSpreadingFactor()!= _DEFAULT_SPREADING_FACTOR) ) return false;
+  else return true;
+}
+
+void restartLoraRadio(){
+  writeSerial("restartLoraRadio");
+  writeSerial("getSignalBandwidth returned: "+String(LoRa.getSignalBandwidth()));
+  writeSerial("getSpreadingFactor returned: "+String(LoRa.getSpreadingFactor()));
+  startLora();
+  setupLoraSettings();
+}
+
+void increasePacketNr(){packetNr++;};
 
 void _sendPacket() {
    writeSerial("_sendMessage");
   //INIT LORA BAND
-  if( (LoRa.getSignalBandwidth()!= _SIGNAL_BANDWIDTH) &&
-  (LoRa.getSpreadingFactor()!= _SPREADING_FACTOR) )
-  {
-    writeSerial("Restart Lora Radio");
-     writeSerial("getSignalBandwidth returned: "+String(LoRa.getSignalBandwidth()));
-     writeSerial("getSpreadingFactor returned: "+String(LoRa.getSpreadingFactor()));
-
-    startLora();
-    setupLoraSettings();
-  }
-  //LoRa.dumpRegisters(Serial);
+  if( isLoRaRadioUnConfigured()) restartLoraRadio();
   LoRa.beginPacket();
-  writeSerial("beginPacket");
-  payload_pdata_size = sizeof(pdata);
-  payload_gdata_size = sizeof(gdata);
-  
-  LoRa.write(payload_pdata_size);      // pdata size
-  pdata.ID = packetID++;
-  pdata.timeMillis = millis();                        // increment message ID
-  //send pdata: ID and TimeStamp
-  LoRa.write((uint8_t*)&pdata, sizeof(pdata));
-   //send gdata: Latitude and Longitude
-  LoRa.write(payload_gdata_size);      // pdata size
-  LoRa.write((uint8_t*)&gdata, sizeof(gdata));
-   
-
-  writeSerial("FinishWritePacket");
+  writeSerial("beginPacket success");                   
+  putGPSData(); 
+  writeSerial("putGPSData success");
   LoRa.endPacket(); 
-  writeSerial("endPacket");
-  writeSerial("goingToSleep");
+  writeSerial("endPacket success");
+  //writeSerial("goingToSleep");
   //LoRa.sleep();
   
 }
 
-
 void _postParse(){
-  if(sizeof(pdata)>0){
     gs_current_latitude = getCoordString(gdata.latitude);
     gs_current_longitude = getCoordString(gdata.longitude);
-    getAdditionalDataString(gdata);
     _log_packet_data();
     _OLED_print_data();
      _addCoordsToPath(gs_current_latitude,gs_current_longitude);
      _encodePath();
-  }
 }
-
-void _Send(){
-  writeSerial("_LoraSendPacket"); 
-  
-   _sendPacket(); 
-   _postParse();
- 
-
-}
-
-
-
 
 bool _parsePacket() {
   writeSerial("LoRa _parsePacket Called");
-   //read pdata: ID and TimeStamp      
-   payload_pdata_size = LoRa.read();    
-   if(payload_pdata_size>0)
-   {       
-     LoRa.readBytes((uint8_t*)&pdata, sizeof(pdata));
-     payload_gdata_size = LoRa.read();
-     //read gdata: Latitude and Longitude + additional attributes
-     if(payload_gdata_size>0) 
-     LoRa.readBytes((uint8_t*)&gdata, sizeof(gdata));
-     
-      // payload of packet
-      /*
-      while (LoRa.available())
-      {
-        payload_data += (char)LoRa.read();
-      }
-      */
-      rssi_value = LoRa.packetRssi();
-      snr_value = LoRa.packetSnr();
-      _postParse();
-      return true;
-   }
-   else return false;
+  LoRa.readBytes((uint8_t*)&gdata, sizeof(gdata));
+  rssi_value = LoRa.packetRssi();
+  snr_value = LoRa.packetSnr();
+  writeSerial("LoRa _Receive _parsePacket success");  
+  return true;
+
    
 }
 
+void _LoraSendPacket(){
+  writeSerial("_LoraSendPacket"); 
+   _sendPacket(); 
+   increasePacketNr();
+   _postParse();
+ 
+}
 
-void _Receive(){
-  //writeSerial("LoRa _parsePacket");
-  //parsePacket:check if a packet was received
+
+void _LoraReceivePacket(){
+  writeSerial("_LoraReceivePacket");
   int packetSize = LoRa.parsePacket();
   if (packetSize>0) { 
-    writeSerial("LoRa _Receive calls _parsePacket");
-    if(_parsePacket()){
-       packetID++;
-       writeSerial("LoRa _Receive _parsePacket success");  
-    }else{
-       writeSerial("LoRa _Receive _parsePacket failure (size of packet?)");  
-    }
+    writeSerial("A packet was received calling _parsePacket");
+    if(_parsePacket()) increasePacketNr();
+    _postParse();
   }
 }
 
-  
+//For Sender
 bool _sendTimer(){
-  if (millis() - lastSendTime > _LORA_SEND_INTERVAL){
+  if (millis() - lastPacketTime > _LORA_SEND_INTERVAL){
       //time since last send
-      lastSendTime = millis();
+      lastPacketTime = millis();
       return true;
  } 
  else return false;
 
 }
-
+//For Receiver
 bool _receiveTimer(){
-  if (pdata.timeMillis > lastSendTime + _LORA_SEND_INTERVAL ){
-      //time since last send
-      lastSendTime = pdata.timeMillis;
+  if (millis() > lastPacketTime + _LORA_SEND_INTERVAL ){
+      //time since last receive
+      lastPacketTime = millis();
       return true;
  } 
  else return false;

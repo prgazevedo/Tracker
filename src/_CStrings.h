@@ -194,6 +194,13 @@ char* basicHex(uint32_t n) // can be any sort of number, long, byte, uint8,16,32
   return outputString;
 }
 
+char* basicBin(uint32_t n) // can be any sort of number, long, byte, uint8,16,32 etc
+{
+  ltoa(n, outputString, 2); // base 16 is binary, returns lower case A-F
+  return outputString;
+}
+
+
 char* basicStr(long n)
 {
   ltoa(n, outputString, 10); // base 10

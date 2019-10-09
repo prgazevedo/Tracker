@@ -3,8 +3,8 @@
 
 // _Main DEFINITIONS
 // Possible roles SENDER or RECEIVER
-#define _ROLE  0 //SENDER=0 RECEIVER=1
-#define _SUBVERSION "20.1"
+#define _ROLE  1 //SENDER=0 RECEIVER=1
+#define _SUBVERSION "22"
 
 //POWER DEFINITIONS
 #define BATTERY_PIN 13
@@ -12,29 +12,31 @@
 #define _POWER_READ_INTERVAL 20000
 #define CPU_FREQ 80 //160
 #define CONFIG_ESP_CONSOLE_UART_NUM 1
-//LOW POWER DEFINITIONS
-#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  2       /* Time ESP32 will go to sleep (in seconds) */
+//CONVERSION DEFINITIONS
+#define S_TO_uS_FACTOR 1000000  /* Conversion factor for seconds to micro seconds */
+#define mS_TO_uS_FACTOR 1000  /* Conversion factor for milli seconds to micro seconds */
+//#define TIME_TO_SLEEP  2000       /* Time ESP32 will go to sleep (in mseconds) */
 //LORA DEFINITIONS
-// LORA Pin definition
+// LORA Radio Pin definition
 #define _SCK     5    // GPIO5  -- SX127x's SCK
 #define _MISO    19   // GPIO19 -- SX127x's MISO
 #define _MOSI    27   // GPIO27 -- SX127x's MOSI
 #define _SS      18   // GPIO18 -- SX127x's CS
 #define _RST     14   // GPIO14 -- SX127x's RESET
 #define _DI00    26   // GPIO26 -- SX127x's IRQ(Interrupt Request)
-//Interval in ms between sending data to other Lora
-#define _LORA_SEND_INTERVAL 2851//8 //see here:https://www.loratools.nl/#/airtime
-// LORA Band definition
+
+///LORA SETUP
 #define _BAND    868E6  //Radio Frequency
 #define _PABOOST true
 #define _LONG_RANGE false   
 #define _MAXPOWER false
-///LONG RANGE SETUP
-#define _SIGNAL_BANDWIDTH 125E3
-#define _SPREADING_FACTOR 8 
-#define _CODING_RATE 7
-#define _MAX_TX_POWER 14
+#define _DEFAULT_SIGNAL_BANDWIDTH 125E3
+#define _DEFAULT_SPREADING_FACTOR 8 
+#define _DEFAULT_CODING_RATE 7
+#define _MAX_TX_POWER 20
+#define _DEFAULT_TX_POWER 14
+//Interval in ms between sending data to other Lora
+#define _LORA_SEND_INTERVAL 2851//8 //see here:https://www.loratools.nl/#/airtime
 
 //GPS DEFINITIONS
 #define RXPin 22
@@ -42,6 +44,7 @@
 #define GPSBaud 9600
 #define GPS_H_PRECISION 2.5 // from: https://www.u-blox.com/sites/default/files/products/documents/NEO-7_DataSheet_%28UBX-13003830%29.pdf
 #define GPS_V_PRECISION 5 //double the horizontal - https://portal.u-blox.com/s/question/0D52p00008HKCDmCAP/does-ublox-standalone-positioning-provide-vertical-positioning-how-precise-is-it
+#define DEBUG_GPS 1
 //WIFI DEFINITIONS
 //network SSID
 #define _WIFI_MODE WIFI_AP_STA   //Alternatives 

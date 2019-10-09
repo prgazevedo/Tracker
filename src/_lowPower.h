@@ -11,6 +11,7 @@
 
 int lastPowerReadTimer = 0;
 
+
 void _setupPower(){
   adcAttachPin(BATTERY_PIN);
   writeSerial("_setupPower called");
@@ -56,7 +57,10 @@ void _readBatteryPower(){
 }
 
 
-
+int calculateTimeToSleep()
+{
+  return _LORA_SEND_INTERVAL* mS_TO_uS_FACTOR; //TIME_TO_SLEEP * mS_TO_uS_FACTOR
+}
 
 
 void _switch_freq(int mhz)
@@ -89,8 +93,9 @@ void print_wakeup_reason()
 
 void _light_sleep(){
       /* Wake up in 2 seconds, or when button is pressed */
-     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-     writeSerial("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds"); 
+      int timeToSleep=calculateTimeToSleep();
+     esp_sleep_enable_timer_wakeup(timeToSleep);
+     writeSerial("Setup ESP32 to sleep for every " + String(timeToSleep) + " Seconds. LoRa radio has Duty Cycle send interval of:"+ String(_LORA_SEND_INTERVAL)+ " ms" ); 
       /* To make sure the complete line is printed before entering sleep mode,
        * need to wait until UART TX FIFO is empty:
        */

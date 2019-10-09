@@ -18,73 +18,65 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
+
+#include <TinyGPS++.h>
+// The TinyGPS++ object
+TinyGPSPlus gps;
+TinyGPSCustom vdop(gps, "GPGSA", 17);
+// For stats that happen every 5 seconds
+unsigned long last = 0UL;
 //MAC Address
 uint64_t chipid;
 String s_chipid;
 //GPS 
 //Struct to hold location values
-typedef struct CoordToSend
-{
-   uint16_t deg;
-   uint32_t billionths;
-   bool negative;
+
+//Temporary Struct to hold location values (bigger size version)
+uint8_t precisionbillionths[4];
+
+//Struct to hold location values (small size version)
+typedef struct GPSCoord
+{ 
+   uint8_t deg;
+   uint8_t billionths[3];
 public:
-   CoordToSend() : deg(0), billionths(0), negative(false){}
-}coordToSend;
+   GPSCoord() : deg(0){}
+}GPSCoord;
 
-//Struct to hold all values
+//Struct to hold LAT LNG values (small size version)
 typedef struct GpsData{
- coordToSend latitude,longitude;
- float hdop_value;
- float vdop_value;
- int altitude_value;
- int fix_age_value;
- uint32_t fix_time_value;
- int satellites_value;
+ GPSCoord latitude,longitude;
+ uint8_t hdop;
+ uint16_t altitude;
+ uint8_t satellites;
+ public:
+   GpsData() : hdop(0),altitude(0),satellites(0){}
 }gpsData;
-
 gpsData gdata;
 
-int payload_gdata_size = 0;
+
+// count of outgoing messages
+byte packetNr = 0;            
+//Time of last Lora data packet
+long lastPacketTime = 0;
 //Used for outputing to serial and html
+
 String gs_current_latitude;
 String gs_current_longitude;
-bool bFirst = true;
-String gs_rcv_latitude;
-String gs_rcv_longitude;
 String gs_current_hdop;
-String gs_current_vdop;
-float gf_current_hdop;
-float gf_current_vdop;
 String gs_current_altitude;
-String gs_current_fix_age;
-String gs_current_fix_time;
 String gs_current_satellites;
 String gspath;
+//For receiver only
+String gs_rcv_latitude;
+String gs_rcv_longitude;
 
 typedef struct GpsPath{
   String lat;
   String lng;
 }gpsPath;
 
-typedef union {
-    float f[2];         // Assigning fVal.f will also populate fVal.bytes;
-    unsigned char bytes[8];   // Both fVal.f and fVal.bytes share the same 4 bytes of memory.
-} floatArr2Val;
-floatArr2Val latlong; //LAT and Long.
-float latitude;
-float longitude;
 
-//LORA 
-//LORA data struct to send
-typedef struct {
-  unsigned int ID;
-  long timeMillis;
-}PacketData;
-
-//LORA packet data
-PacketData pdata;
-int payload_pdata_size = 0;
 
 //LORA radio signal data
 int rssi_value = 0;

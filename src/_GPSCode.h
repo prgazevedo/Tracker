@@ -17,42 +17,20 @@
  */
 
 
-#include "_GPSUtils.h"
+
 #include "_Global.h"
 
 
-/* sample test stream
-const char *testStream =
-  "$GPRMC,045103.000,A,3014.1984,N,09749.2872,W,0.67,161.46,030913,,,A*7C\r\n"
-  "$GPGGA,045104.000,3014.1985,N,09749.2873,W,1,09,1.2,211.6,M,-22.5,M,,0000*62\r\n"
-  "$GPRMC,045200.000,A,3014.3820,N,09748.9514,W,36.88,65.02,030913,,,A*77\r\n"
-  "$GPGGA,045201.000,3014.3864,N,09748.9411,W,1,10,1.2,200.8,M,-22.5,M,,0000*6C\r\n"
-  "$GPRMC,045251.000,A,3014.4275,N,09749.0626,W,0.51,217.94,030913,,,A*7D\r\n"
-  "$GPGGA,045252.000,3014.4273,N,09749.0628,W,1,09,1.3,206.9,M,-22.5,M,,0000*6F\r\n";
-
-  void _encodeTestStream(){
-   while (*testStream)
-    gps.encode(*testStream++);
-}
-*/
-
-
-TinyGPSCustom vdop(gps, "GPGSA", 17);
-
-
-
-// For stats that happen every 5 seconds
-unsigned long last = 0UL;
 
 // The serial connection to the GPS device
 void _SetupGPS()
 {
 
   Serial2.begin(GPSBaud, SERIAL_8N1, RXPin, TXPin);
+  
   Serial.print(F("Using TinyGPS++ library v. ")); 
   Serial.println(TinyGPSPlus::libraryVersion());
   Serial.println(F("by Mikal Hart"));
-
   Serial.println();
 }
 
@@ -61,7 +39,6 @@ void _writeGPSHeader(){
   Serial.println(F("           (deg)      (deg)       Age                      Age  (m)    --- from GPS ----       RX    RX        Fail"));
   Serial.println(F("---------------------------------------------------------------------------------------------------------------------"));
 }
-
 
 
 
@@ -74,6 +51,15 @@ void _encodeGPS(){
     Serial.write(c);
     gps.encode(c);
   }
+}
+
+bool _validGPSData(){
+  if(DEBUG_GPS)  return false;
+  else if( (gps.hdop.hdop()>21) && 
+  (gps.satellites.value()>3) &&
+  gps.hdop.isValid()  && 
+  gps.satellites.isValid() && 
+  gps.location.isValid()) return true;
 }
 
 
@@ -104,64 +90,124 @@ void _encodeLocationSummary(){
     writeSerial(F("No GPS data received: check wiring"));
 }
 
-GpsData getRawGPSData(){
-    GpsData gpsData;
-    gpsData.latitude.negative = gps.location.rawLat().negative;
-    gpsData.latitude.deg = gps.location.rawLat().deg;
-    gpsData.latitude.billionths =gps.location.rawLat().billionths;
-    gpsData.longitude.negative = gps.location.rawLng().negative;
-    gpsData.longitude.deg = gps.location.rawLng().deg;
-    gpsData.longitude.billionths =gps.location.rawLng().billionths;
-    //additional data
-    gpsData.hdop_value=gps.hdop.hdop();
-    gpsData.vdop_value=String(vdop.value()).toFloat();
-    gpsData.altitude_value=gps.altitude.meters();
-    gpsData.fix_age_value=gps.location.age();
-    gpsData.fix_time_value=gps.time.value();
-    gpsData.satellites_value=gps.satellites.value();
-    
-    return gpsData;
-}
-  
 
-
-double getCoord(coordToSend rawData){
-   double ret = rawData.deg + rawData.billionths / 1000000000.0;
-   return rawData.negative ? -ret : ret;
-}
-
-void getAdditionalDataString(GpsData gpsData)
+uint32_t restructureBillionths( uint8_t* billionths)
 {
-  gf_current_hdop=gpsData.hdop_value;
-  gf_current_vdop=gpsData.vdop_value;
-  gs_current_hdop=String(gf_current_hdop);
-  gs_current_vdop=String(gf_current_vdop);
-  gs_current_altitude=String(gpsData.altitude_value);
-  gs_current_fix_age=String(gpsData.fix_age_value);
-  gs_current_fix_time=String(gpsData.fix_time_value);
-  gs_current_satellites=String(gpsData.satellites_value);
+  //uint32_t out = *(uint32_t*)&gData.billionths;
+  uint32_t out = *(uint32_t*)billionths;
+  //Need to mask the unset memory of the MSB byte to zeros and left shift 1 byte to get the original value 
+  out = (out & 0x00ffffff) ;
+  out = out << 8;
+  return out;
 }
 
-String getCoordString(coordToSend rawData){
-     double ret = getCoord(rawData);
-    char TempString[10];  //  Hold The Convert Data
-    dtostrf(ret,3,6,TempString);
-    // dtostrf( [doubleVar] , [sizeBeforePoint] , [sizeAfterPoint] , [WhereToStoreIt] )
-   return String(TempString);
+void shrinkGPSData(uint8_t *coord){
+  (coord)[0]= precisionbillionths[1];
+  (coord)[1]= precisionbillionths[2];
+  (coord)[2]= precisionbillionths[3];
+  restructureBillionths(coord);
 }
 
+void getAltitude()
+{
+  if(DEBUG_GPS) gdata.altitude=5000;
+  else gdata.altitude = (uint16_t)(gps.altitude.meters());
+}
 
-String _encodeLocation(){
-  writeSerial("_encodeLocation called"); 
+void getHDOP()
+{
+  if(DEBUG_GPS) gdata.hdop = 3;
+  else gdata.hdop = (uint16_t)(gps.hdop.hdop());
+}
+
+void getSatellites()
+{
+  if(DEBUG_GPS) gdata.satellites = 4;
+  else gdata.satellites = (uint8_t)(gps.satellites.value());
+}
+
+void getLAT()
+{
+   if(DEBUG_GPS){
+      gdata.latitude.deg = 38;
+      uint32_t tmpLatBillionths = 775760333;
+      memcpy(precisionbillionths, &tmpLatBillionths, sizeof(precisionbillionths));
+   }
+   else{
+      if(gps.location.rawLat().negative) gdata.latitude.deg =  gps.location.rawLat().deg | 0x80;
+      else gdata.latitude.deg =  gps.location.rawLat().deg;
+      memcpy(precisionbillionths, &gps.location.rawLat().billionths, sizeof(precisionbillionths));
+   }
+  shrinkGPSData(gdata.latitude.billionths);
+}
+
+void getLNG()
+{
+   if(DEBUG_GPS){
+      gdata.longitude.deg = 9;
+      gdata.longitude.deg = (9 | 0x80);
+      uint32_t tmpLngBillionths = 95114333;
+      memcpy(precisionbillionths, &tmpLngBillionths, sizeof(precisionbillionths));
+   }
+  else{
+    if(gps.location.rawLng().negative) gdata.longitude.deg =  gps.location.rawLng().deg | 0x80;
+    else gdata.longitude.deg =  gps.location.rawLng().deg;
+    memcpy(precisionbillionths, &gps.location.rawLng().billionths, sizeof(precisionbillionths));
+  }
+  shrinkGPSData(gdata.longitude.billionths);
+}
+
+void getRawGPSData()
+{   
+  getLAT();
+  getLNG();
+  getAltitude();
+  getHDOP();
+  getSatellites();
+  _logRawGPSData();
+}
+
+String getCoordString(GPSCoord gData){
   
-  gdata = getRawGPSData();
+  String gDataToReturn="";
+  bool negative=false;
+  if(gData.deg & 0x80) negative = true;
+  //uint32_t out = restructureBillionths(&gData.billionths);
+    uint32_t out = *(uint32_t*)gData.billionths;
+  //Need to mask the unset memory of the MSB byte to zeros and left shift 1 byte to get the original value 
+  out = (out & 0x00ffffff) ;
+  out = out << 8;
+  if(negative)
+  {
+    gDataToReturn+="-";
+    gData.deg=(gData.deg)&(0x7F);
+  }
+  gDataToReturn += (String((gData.deg),DEC)+"."+String(out,DEC));
+  _logCoordString(gData);
+  return gDataToReturn;
+
+}
+
+void getAltitudeString(){
+   gs_current_altitude=String(gdata.altitude,DEC);
+}
+void getHDOPString(){
+   gs_current_hdop=String(gdata.hdop,DEC);
+}
+
+void getSatellitesString(){
+   gs_current_satellites=String(gdata.satellites,DEC);
+}
+
+void _encodeLocation(){
+  writeSerial("_encodeLocation called"); 
+  getRawGPSData();
   gs_current_latitude = getCoordString(gdata.latitude);
   gs_current_longitude = getCoordString(gdata.longitude);
-  getAdditionalDataString(gdata);
- writeSerial("_encodeLocation has latitude: "+gs_current_latitude+ " and longitude: "+gs_current_longitude);
- writeSerial("_encodeLocation has addtional data: "+_log_additional_data());
-   String sEncode="LatLong- latitude: "+gs_current_latitude+ " and longitude: "+gs_current_longitude;
-  return sEncode;
+  getAltitudeString();
+  getHDOPString();
+  getSatellitesString();
+
 }
 
 
@@ -175,12 +221,9 @@ void _getGPS()
 {
     writeSerial("_getGPS called");
     //basicGPSDebug();
-    
     _encodeGPS();
     //_encodeTestStream();
     //_encodeLocationSummary();
     _encodeLocation();
 
- 
- 
 }

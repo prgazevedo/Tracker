@@ -24,13 +24,14 @@
 #include <SPI.h> //Serial Comms Lib
 #include <SSD1306.h> //OLED display Lib
 #include <LoRa.h> //Lora Comms Lib
-#include "_CStrings.h" //CString mem reduction code
-#include "_SerialCode.h" //Serial lib
-#include "_OledCode.h" //OLED code
-#include "_GPSCode.h" //GPS code
-#include "_LoraCode.h" //Lora Code
 #include "_Definitions.h"
 #include "_Global.h"
+#include "_CStrings.h" //CString mem reduction code
+#include "_Utils.h" 
+#include "_SerialCode.h" //Serial lib
+#include "_GPSCode.h" //GPS code
+#include "_OledCode.h" //OLED code
+#include "_LoraCode.h" //Lora Code
 #include "_WifiManager.h"
 #include "_File.h"
 #include "_MQTT.h"
@@ -92,7 +93,7 @@ void loop()
      if (_sendTimer()){  
           
         _getGPS();
-        _Send();
+        _LoraSendPacket();
       }
 
 
@@ -100,7 +101,7 @@ void loop()
   else
   {
     //_ROLE==RECEIVER
-    _Receive();
+    _LoraReceivePacket();
     if(_receiveTimer())
     {
       writeSerial("MQTT  _publishLocationData called"); 

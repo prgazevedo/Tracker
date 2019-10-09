@@ -3,19 +3,39 @@
 
 SimpleList<gpsPath> myList;
 
+String lastLat;
+String lastLng;
+
+bool bFirstPathPoint = true;
+
+
+bool checkNoMovement(String lat, String lng){
+  if( (lat.equals(lastLat)) && (lng.equals(lastLng)) ) return true;
+  else return false;
+}
 
 void _addCoordsToPath(String lat, String lng){
-  gpsPath gPath;
-  gPath.lat = lat;
-  gPath.lng = lng;
-  myList.push_back(gPath);
-  writeSerial("_addCoordsToPath added: lat: "+lat+" lng: "+lng);
-  if(bFirst)
+  if (checkNoMovement(lat,lng)) 
   {
-    bFirst=false;
-    gs_rcv_latitude=lat;
-    gs_rcv_longitude=lng;
+    writeSerial("_addCoordsToPath no movement detected");
+    return;
   }
+  else{
+    gpsPath gPath;
+    gPath.lat = lat;
+    gPath.lng = lng;
+    lastLat = lat;
+    lastLng = lng;
+    myList.push_back(gPath);
+    writeSerial("_addCoordsToPath added: lat: "+lat+" lng: "+lng);
+    if(bFirstPathPoint)
+    {
+      bFirstPathPoint=false;
+      gs_rcv_latitude=lat;
+      gs_rcv_longitude=lng;
+    }
+  }
+
 }
 
 void _encodePath(){

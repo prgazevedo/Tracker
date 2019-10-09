@@ -15,12 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <TinyGPS++.h>
+#include "_Global.h"
 
-// The TinyGPS++ object
-TinyGPSPlus gps;
-
- 
 // This custom version of delay() ensures that the gps object
 // is being "fed".
 static void smartDelay(unsigned long ms)
@@ -33,26 +29,6 @@ static void smartDelay(unsigned long ms)
   } while (millis() - start < ms);
 }
 
-
-static void printFloat(float val, bool valid, int len, int prec)
-{
-  if (!valid)
-  {
-    while (len-- > 1)
-      Serial.print('*');
-    Serial.print(' ');
-  }
-  else
-  {
-    Serial.print(val, prec);
-    int vi = abs((int)val);
-    int flen = prec + (val < 0.0 ? 2 : 1); // . and -
-    flen += vi >= 1000 ? 4 : vi >= 100 ? 3 : vi >= 10 ? 2 : 1;
-    for (int i=flen; i<len; ++i)
-      Serial.print(' ');
-  }
-  smartDelay(0);
-}
 
 static void printInt(unsigned long val, bool valid, int len)
 {
@@ -68,7 +44,10 @@ static void printInt(unsigned long val, bool valid, int len)
   smartDelay(0);
 }
 
-static void printDateTime(TinyGPSDate &d, TinyGPSTime &t)
+
+
+
+ static void printDateTime(TinyGPSDate &d, TinyGPSTime &t)
 {
   if (!d.isValid())
   {
@@ -95,6 +74,30 @@ static void printDateTime(TinyGPSDate &d, TinyGPSTime &t)
   printInt(d.age(), d.isValid(), 5);
   smartDelay(0);
 }
+
+
+
+static void printFloat(float val, bool valid, int len, int prec)
+{
+  if (!valid)
+  {
+    while (len-- > 1)
+      Serial.print('*');
+    Serial.print(' ');
+  }
+  else
+  {
+    Serial.print(val, prec);
+    int vi = abs((int)val);
+    int flen = prec + (val < 0.0 ? 2 : 1); // . and -
+    flen += vi >= 1000 ? 4 : vi >= 100 ? 3 : vi >= 10 ? 2 : 1;
+    for (int i=flen; i<len; ++i)
+      Serial.print(' ');
+  }
+  smartDelay(0);
+}
+
+
 
 static void printStr(const char *str, int len)
 {
@@ -132,4 +135,28 @@ String hex2str(char *data)
         i++ ;
    }
    return result;
+}
+
+String int2binstr(int value,int sizeoftype=8, bool skip_leading_zeroes = false)
+{
+    String str;
+    bool found_first_one = false;
+    const int bits = sizeoftype;//sizeof(value) * 8;  // Number of bits in the type : lots of leading zeros
+
+    for (int current_bit = bits - 1; current_bit >= 0; current_bit--)
+    {
+        if ((value & (1ULL << current_bit)) != 0)
+        {
+            if (!found_first_one)
+                found_first_one = true;
+            str += '1';
+        }
+        else
+        {
+             if (!skip_leading_zeroes || found_first_one)
+                str += '0';
+        }
+    }
+
+    return str;
 }

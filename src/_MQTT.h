@@ -42,10 +42,10 @@ void _connectMQTTServer() {
 
 String createJsonString() {
   String battery = "-No data-";
-  String horizontal_accuracy = String(gf_current_hdop*GPS_H_PRECISION);
+  String horizontal_accuracy = String(gs_current_hdop.toFloat()*GPS_H_PRECISION);
   String pressure = "-No data-";
-  String vertical_accuracy = String(gf_current_vdop*GPS_V_PRECISION);
-  String location_fix_time = gs_current_fix_time;
+  String vertical_accuracy = "-No data-";
+  String location_fix_time = "-No data-";
   String altitude_gps_value = gs_current_altitude;
   
   String json = "{";

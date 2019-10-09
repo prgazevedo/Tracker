@@ -52,13 +52,13 @@ void OLED_write(int a, int b, String toWrite){
 void _OLED_print_data(){
   OLED_clear();
   if(_ROLE==0)OLED_write(0,0,"SenderV1." _SUBVERSION);
-  else OLED_write(0,0,"RecvV1." _SUBVERSION "-"+gcurrent_ssid);
-  OLED_write(78,0, "BAT:");
-  OLED_write(108,0, sVBAT+"V");
+  else OLED_write(0,0,"RecvV1." _SUBVERSION );
+  if(_validGPSData()) OLED_write(68,0, "LIVE GPS");
+  else OLED_write(68,0, "DEBUG GPS");
   OLED_write(0,9,"Packet Id:");
-  OLED_write(60,9,String(pdata.ID));
+  OLED_write(60,9,String(packetNr));
   OLED_write(0,18,"TimeStamp:");
-  OLED_write(60,18,String(pdata.timeMillis));
+  OLED_write(60,18,String(lastPacketTime));
   OLED_write(0,27,"Latitude:");
   OLED_write(60,27,gs_current_latitude);
   OLED_write(0,36,"Longitude: ");
@@ -67,8 +67,8 @@ void _OLED_print_data(){
   { 
     OLED_write(0,45,"HDOP/SAT: ");
     OLED_write(60,45,gs_current_hdop+" / "+gs_current_satellites);
-    OLED_write(0,54,"ALT./FIX: ");
-    OLED_write(60,54,gs_current_altitude+" / "+ gs_current_fix_age);
+    OLED_write(0,54,"ALT:/BAT:");
+    OLED_write(60,54,gs_current_altitude+" / "+sVBAT+"V"); 
 
   }
 
