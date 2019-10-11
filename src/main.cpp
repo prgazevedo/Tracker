@@ -87,7 +87,7 @@ void loop()
   if(_ROLE==0)
   {
     //_ROLE==SENDER
-     //_light_sleep();
+     if(SLEEP_MODE) _light_sleep();
 
      //_LEDBlink(); //SAVE POWER
      if (_sendTimer()){  

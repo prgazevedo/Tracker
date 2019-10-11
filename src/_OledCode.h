@@ -55,20 +55,23 @@ void _OLED_print_data(){
   else OLED_write(0,0,"RecvV1." _SUBVERSION );
   if(_validGPSData()) OLED_write(68,0, "LIVE GPS");
   else OLED_write(68,0, "DEBUG GPS");
-  OLED_write(0,9,"Packet Id:");
-  OLED_write(60,9,String(packetNr));
-  OLED_write(0,18,"TimeStamp:");
-  OLED_write(60,18,String(lastPacketTime));
-  OLED_write(0,27,"Latitude:");
-  OLED_write(60,27,gs_current_latitude);
-  OLED_write(0,36,"Longitude: ");
-  OLED_write(60,36,gs_current_longitude);
-   if(_ROLE==0)
+  OLED_write(0,9,"Packet Id/Time(s): "+String(packetNr)+"/"+ (_LORA_SEND_INTERVAL/1000));
+  //OLED_write(60,9,String(packetNr)+"/"+ _LORA_SEND_INTERVAL );
+  OLED_write(0,18,"TimeStamp: "+String(lastPacketTime));
+  //OLED_write(60,18,String(lastPacketTime));
+  gs_current_latitude.remove(gs_current_latitude.indexOf('.')+5);
+  gs_current_longitude.remove(gs_current_longitude.indexOf('.')+5);
+  OLED_write(0,27,"LAT/LNG: "+gs_current_latitude+"/"+gs_current_longitude );
+  //OLED_write(0,27,"Latitude: "+gs_current_latitude);
+  //OLED_write(60,27,gs_current_latitude);
+  //OLED_write(0,36,"Longitude: "+gs_current_longitude);
+  //OLED_write(60,36,gs_current_longitude);
+   if(_ROLE==0 || _ROLE==1 )
   { 
-    OLED_write(0,45,"HDOP/SAT: ");
-    OLED_write(60,45,gs_current_hdop+" / "+gs_current_satellites);
-    OLED_write(0,54,"ALT:/BAT:");
-    OLED_write(60,54,gs_current_altitude+" / "+sVBAT+"V"); 
+    OLED_write(0,36,"HDOP/SAT/ALT: "+gs_current_hdop+"/"+gs_current_satellites+"/"+gs_current_altitude);
+    //OLED_write(60,45,gs_current_hdop+" / "+gs_current_satellites);
+    //OLED_write(0,54,"ALT:/BAT:"+gs_current_altitude+" / "+sVBAT+"V");
+    //OLED_write(60,54,gs_current_altitude+" / "+sVBAT+"V"); 
 
   }
 

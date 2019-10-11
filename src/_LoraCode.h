@@ -40,8 +40,11 @@ void setupLoraSettings(){
     writeSerial("LoRa is using Power:"+String(_MAX_TX_POWER));
   } else {
     LoRa.setTxPower(_DEFAULT_TX_POWER);
-    writeSerial("LoRa is using Power:"+String(_MAX_TX_POWER));
+    writeSerial("LoRa is using Power:"+String(_DEFAULT_TX_POWER));
   }
+  if(IMPLICIT_HEADER) LoRa.implicitHeaderMode();
+  else LoRa.explicitHeaderMode();
+
   //For Range
   if(_LONG_RANGE)
   {
@@ -91,15 +94,13 @@ void increasePacketNr(){packetNr++;};
 void _sendPacket() {
    writeSerial("_sendMessage");
   //INIT LORA BAND
-  if( isLoRaRadioUnConfigured()) restartLoraRadio();
+  if( isLoRaRadioUnConfigured() || SLEEP_MODE) restartLoraRadio();
   LoRa.beginPacket();
   writeSerial("beginPacket success");                   
   putGPSData(); 
   writeSerial("putGPSData success");
   LoRa.endPacket(); 
   writeSerial("endPacket success");
-  //writeSerial("goingToSleep");
-  //LoRa.sleep();
   
 }
 

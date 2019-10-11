@@ -3,10 +3,12 @@
 
 // _Main DEFINITIONS
 // Possible roles SENDER or RECEIVER
-#define _ROLE  1 //SENDER=0 RECEIVER=1
+#define _ROLE  0 //SENDER=0 RECEIVER=1
 #define _SUBVERSION "22"
 
 //POWER DEFINITIONS
+#define IMPLICIT_HEADER true
+#define SLEEP_MODE true
 #define BATTERY_PIN 13
 #define _FULL_BATTERY    3700  //The default battery is 3700mv when the battery is fully charged.
 #define _POWER_READ_INTERVAL 20000
@@ -31,12 +33,12 @@
 #define _LONG_RANGE false   
 #define _MAXPOWER false
 #define _DEFAULT_SIGNAL_BANDWIDTH 125E3
-#define _DEFAULT_SPREADING_FACTOR 8 
-#define _DEFAULT_CODING_RATE 7
+#define _DEFAULT_SPREADING_FACTOR 6 
+#define _DEFAULT_CODING_RATE 5
 #define _MAX_TX_POWER 20
 #define _DEFAULT_TX_POWER 14
 //Interval in ms between sending data to other Lora
-#define _LORA_SEND_INTERVAL 2851//8 //see here:https://www.loratools.nl/#/airtime
+#define _LORA_SEND_INTERVAL 30000//8 //see here:https://www.loratools.nl/#/airtime
 
 //GPS DEFINITIONS
 #define RXPin 22
