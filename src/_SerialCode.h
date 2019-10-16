@@ -73,22 +73,35 @@ void _logRawGPSData()
   
 }
 
-void _logCoordString(GPSCoord debugGData)
+void _logCoord(GPSCoord debugGData)
 {
-    writeSerial(" getCoordString Degrees was found to be  DEG "+String((debugGData.deg),BIN));
-    writeSerial(" getCoordString Degrees was found to be  MASK "+String((0x80),BIN));
-    writeSerial(" getCoordString Degrees was found to be  DEG&MASK "+String((debugGData.deg)&(0x80),BIN));
-    writeSerial(" getCoordString Degrees in Decimal is "+  String((debugGData.deg),DEC));
+    writeSerial(" _logCoordString Degrees was found to be  DEG "+String((debugGData.deg),BIN));
+    writeSerial(" _logCoordString Degrees was found to be  MASK "+String((0x80),BIN));
+    writeSerial(" _logCoordString Degrees was found to be  DEG&MASK "+String((debugGData.deg)&(0x80),BIN));
+    writeSerial(" _logCoordString Degrees in Decimal is "+  String((debugGData.deg),DEC));
+    writeSerial(" _logCoordString Degrees in Hexadecimal is "+  String((debugGData.deg),HEX));
    uint32_t out = *(uint32_t*)(debugGData.billionths);
-    writeSerial(" getCoordString assigned Billionths in Decimal is "+  String((out),DEC));
-    writeSerial(" getCoordString assigned Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString assigned Billionths in Decimal is "+  String((out),DEC));
+    writeSerial(" _logCoordString assigned Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString assigned Billionths in Hexadecimal is "+  String((out),HEX));
     out = (out & 0x00ffffff) ;
-    writeSerial(" getCoordString masked Billionths in Decimal is "+  String((out),DEC));
-    writeSerial(" getCoordString masked Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString masked Billionths in Decimal is "+  String((out),DEC));
+    writeSerial(" _logCoordString masked Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString assigned Billionths in Hexadecimal is "+  String((out),HEX));
     out = out << 8;
-    writeSerial(" getCoordString shifted Billionths in Decimal is "+  String((out),DEC));
-    writeSerial(" getCoordString shifted Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString shifted Billionths in Decimal is "+  String((out),DEC));
+    writeSerial(" _logCoordString shifted Billionths in Binary is "+  String((out),BIN));
+    writeSerial(" _logCoordString assigned Billionths in Hexadecimal is "+  String((out),HEX));
+
 }
+
+void _logAdditionalData(){
+      writeSerial(" _logGData hdop in Hexadecimal is "+ String((gdata.hdop),HEX));
+      writeSerial(" _logGData satellites in Hexadecimal is "+ String((gdata.satellites),HEX));
+      writeSerial(" _logGData altitude in Hexadecimal is "+ String((gdata.altitude),HEX));
+
+}
+
 
 void _log_packet_data( ){
    if(_ROLE==0)

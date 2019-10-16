@@ -20,111 +20,125 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <Arduino.h>
-#include <SPI.h> //Serial Comms Lib
+#include <Wire.h>    //Wire Comms Lib
+#include <SPI.h>     //Serial Comms Lib
 #include <SSD1306.h> //OLED display Lib
-#include <LoRa.h> //Lora Comms Lib
+#include <LoRa.h>    //Lora Comms Lib
 #include "_Definitions.h"
 #include "_Global.h"
 #include "_CStrings.h" //CString mem reduction code
-#include "_Utils.h" 
+#include "_Utils.h"
 #include "_SerialCode.h" //Serial lib
-#include "_GPSCode.h" //GPS code
+#include "_DeltaTime.h"
+#include "_GPSCode.h"  //GPS code
 #include "_OledCode.h" //OLED code
+#include "_Crypto.h"   //Crypto code
 #include "_LoraCode.h" //Lora Code
 #include "_WifiManager.h"
 #include "_File.h"
 #include "_MQTT.h"
 #include "_httpServer.h"
-#include "_lowPower.h"
-
-
+#include "_Power.h"
 
 void setup()
 {
-  writeSerial("PWD setup Begin");
-  //LED CFG
-  pinMode(25,OUTPUT);
   _SerialInit();
+  _setupDeltaTime();
+  _setupBootBegin();
+  //LED CFG
+  _setupLED();
+
   _OledInit();
   _LoraInit();
   _setupMAC();
+
+#if _ROLE == 0
+  writeSerial("setup Sender called");
+  if (LOW_POWER)
+  {
+    _setupLowPower();
+    _OLEDDisable();
+  }
+  // Setup the GPS
+  _SetupGPS();
+  // Setup lower CPU frequency
+  _switch_freq(CPU_FREQ);
+#endif
+#if _ROLE == 1
+  writeSerial("setup Receiver called");
   _Fileinit();
   writeSerial(_readPassword());
-  _setupPower();
-  #if _ROLE == 0
-   writeSerial("setup Sender called");
-    
-    // Setup the GPS
-    _SetupGPS();
-    // Setup lower CPU frequency
-    _switch_freq(CPU_FREQ);
-  #endif
-  #if _ROLE == 1
-      // only compile MQTT if in receiver mode
-      writeSerial("setup Receiver called");
-      //_setupWifiConnection();
-      
-      _setupAutoconnect();
+  // only compile MQTT if in receiver mode
+  writeSerial("setup Receiver called");
+  //_setupWifiConnection();
 
-      _connectMQTTServer();
-      //_setupWebServer();
-      _setupHTTPSSERVER();
-      OLED_write("Waiting for LORA Packets");
-  #endif
+  _setupAutoconnect();
 
-  writeSerial("setup Ended");
-
+  _connectMQTTServer();
+  //_setupWebServer();
+  _setupHTTPSSERVER();
+  OLED_write("Waiting for LORA Packets");
+#endif
+  _setupEnd();
+  _totalTimer();
+  //security buffer for upload
+  delay(5000);
 }
 
-
-
 void loop()
-{ 
-  if(_readPowerTimer()){
+{
+
+  if (_readPowerTimer())
+  {
     _readBatteryPower();
   }
-  if(_ROLE==0)
+  if (_ROLE == 0)
   {
+
+    //_LEDBlink(); //SAVE POWER
+    if (_sendTimer())
+    {
+
+      _getGPS();
+      _LoraSendPacket();
+    }
+
     //_ROLE==SENDER
-     if(SLEEP_MODE) _light_sleep();
-
-     //_LEDBlink(); //SAVE POWER
-     if (_sendTimer()){  
-          
-        _getGPS();
-        _LoraSendPacket();
-      }
-
-
+    if (SLEEP_MODE == 1)
+      _light_sleep();
+    if (SLEEP_MODE == 2)
+      _deep_sleep();
   }
   else
   {
     //_ROLE==RECEIVER
+    //_testCrypto();
     _LoraReceivePacket();
-    if(_receiveTimer())
+    if (_receiveTimer())
     {
-      writeSerial("MQTT  _publishLocationData called"); 
-       _publishLocationData();
+      writeSerial("MQTT  _publishLocationData called");
+      _publishLocationData();
     }
-    if(_checkhttpserverTimer())
+    if (_checkhttpserverTimer())
     {
-      
-      if(bPortalStarted){
-        writeSerial("_handlePortal called"); 
+
+      if (bPortalStarted)
+      {
+        writeSerial("_handlePortal called");
         _handlePortal();
       }
-      else {
-        writeSerial("_httpServerLoop called"); 
+      else
+      {
+        writeSerial("_httpServerLoop called");
         _updateWifiState();
         //_checkWifiState();
-        
+
         _httpServerLoop();
       }
-
     }
     _LEDBlink();
-    
   }
 
 }

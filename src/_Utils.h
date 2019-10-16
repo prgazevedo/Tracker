@@ -17,6 +17,14 @@
  */
 #include "_Global.h"
 
+void sendCommand(unsigned char command)
+{
+  Wire.beginTransmission(0x3C); // oled adress
+  Wire.write(0x80); // command mode
+  Wire.write(command);
+  Wire.endTransmission();
+}
+
 // This custom version of delay() ensures that the gps object
 // is being "fed".
 static void smartDelay(unsigned long ms)

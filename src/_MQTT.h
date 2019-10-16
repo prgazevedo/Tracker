@@ -53,7 +53,7 @@ String createJsonString() {
   json+=String(battery);
   json+=",";
   json+= "\"lon\":";
-  json+=getCoordString(gdata.longitude);
+  json+=convertCoordString(gdata.longitude);
   json+=",";
   json+= "\"acc\":";
   json+=String(horizontal_accuracy);
@@ -65,7 +65,7 @@ String createJsonString() {
   json+=String(vertical_accuracy);
   json+=",";
   json+= "\"lat\":";
-  json+=getCoordString(gdata.latitude);
+  json+=convertCoordString(gdata.latitude);
   json+=",";
   json+= "\"t\":\"t\"";
   json+=",";

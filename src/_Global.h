@@ -18,19 +18,19 @@
 #ifndef _GLOBAL_H
 #define _GLOBAL_H
 
-
 #include <TinyGPS++.h>
 // The TinyGPS++ object
 TinyGPSPlus gps;
 TinyGPSCustom vdop(gps, "GPGSA", 17);
 // For stats that happen every 5 seconds
 unsigned long last = 0UL;
+//SLEEP REBOOT Vars
+RTC_DATA_ATTR int bootCount = 0;
 //MAC Address
 uint64_t chipid;
 String s_chipid;
 //GPS 
-//Struct to hold location values
-
+//Structs to hold location values
 //Temporary Struct to hold location values (bigger size version)
 uint8_t precisionbillionths[4];
 
@@ -47,10 +47,25 @@ public:
 typedef struct GpsData{
  GPSCoord latitude,longitude;
  uint8_t hdop;
- uint16_t altitude;
  uint8_t satellites;
+ uint16_t altitude;
  public:
-   GpsData() : hdop(0),altitude(0),satellites(0){}
+   GpsData() : hdop(0),satellites(0),altitude(0){}
+   String toHEXString()
+   {
+      return (String(latitude.deg,HEX)+
+      String(latitude.billionths[0],HEX)+
+      String(latitude.billionths[1],HEX)+
+      String(latitude.billionths[2],HEX)+
+      String(longitude.deg,HEX)+
+      String(longitude.billionths[0],HEX)+
+      String(longitude.billionths[1],HEX)+
+      String(longitude.billionths[2],HEX)+
+      String(hdop,HEX)+
+      String(satellites,HEX))+
+      String((uint8_t)(altitude),HEX)+
+      String((uint8_t)(altitude >> 8),HEX);
+   }
 }gpsData;
 gpsData gdata;
 

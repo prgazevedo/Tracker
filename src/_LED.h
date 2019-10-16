@@ -2,6 +2,10 @@
 #ifndef _LED_H
 #define _LED_H
 
+void _setupLED(){
+    pinMode(25,OUTPUT);
+}
+
 void _LEDBlink(){
   digitalWrite(25, HIGH);   // LED ON
   delay(10);                       // wait Xms

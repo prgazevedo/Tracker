@@ -73,6 +73,11 @@ void _LoraInit(){
 void putGPSData(){
   LoRa.write((uint8_t*)&gdata, sizeof(gdata));
   writeSerial("putGPSData test - size of gdata is:"+ String(sizeof(gdata)));
+  writeSerial("size of gdata.latitude is:"+ String(sizeof(gdata.latitude)));
+  writeSerial("size of gdata.longitude is:"+ String(sizeof(gdata.longitude)));
+  writeSerial("size of gdata.hdop is:"+ String(sizeof(gdata.hdop)));
+  writeSerial("size of gdata.altitude is:"+ String(sizeof(gdata.altitude)));
+  writeSerial("size of gdata.satellites is:"+ String(sizeof(gdata.satellites)));
 }
 
 bool isLoRaRadioUnConfigured(){
@@ -92,9 +97,13 @@ void restartLoraRadio(){
 void increasePacketNr(){packetNr++;};
 
 void _sendPacket() {
-   writeSerial("_sendMessage");
+   writeSerial("_sendPacket");
   //INIT LORA BAND
-  if( isLoRaRadioUnConfigured() || SLEEP_MODE) restartLoraRadio();
+  if( isLoRaRadioUnConfigured() || SLEEP_MODE != 0)
+  {
+    writeSerial("_sendPacket:had to restartLoraRadio ");
+     restartLoraRadio();
+   }
   LoRa.beginPacket();
   writeSerial("beginPacket success");                   
   putGPSData(); 
@@ -105,17 +114,17 @@ void _sendPacket() {
 }
 
 void _postParse(){
-    gs_current_latitude = getCoordString(gdata.latitude);
-    gs_current_longitude = getCoordString(gdata.longitude);
+    _convertGDataToString();
     _log_packet_data();
     _OLED_print_data();
-     _addCoordsToPath(gs_current_latitude,gs_current_longitude);
-     _encodePath();
+    _addCoordsToPath(gs_current_latitude,gs_current_longitude);
+    _encodePath();
 }
 
 bool _parsePacket() {
   writeSerial("LoRa _parsePacket Called");
   LoRa.readBytes((uint8_t*)&gdata, sizeof(gdata));
+  _decode();
   rssi_value = LoRa.packetRssi();
   snr_value = LoRa.packetSnr();
   writeSerial("LoRa _Receive _parsePacket success");  
@@ -126,6 +135,7 @@ bool _parsePacket() {
 
 void _LoraSendPacket(){
   writeSerial("_LoraSendPacket"); 
+  _encode();
    _sendPacket(); 
    increasePacketNr();
    _postParse();
@@ -145,6 +155,7 @@ void _LoraReceivePacket(){
 
 //For Sender
 bool _sendTimer(){
+  if(SLEEP_MODE ==1 || SLEEP_MODE ==2) return true;
   if (millis() - lastPacketTime > _LORA_SEND_INTERVAL){
       //time since last send
       lastPacketTime = millis();

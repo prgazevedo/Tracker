@@ -42,7 +42,7 @@ void _writeGPSHeader(){
 
 
 
-void _encodeGPS(){
+void _processGPSData(){
   // Dispatch incoming characters
   while (Serial2.available() > 0)
   {
@@ -157,7 +157,7 @@ void getLNG()
   shrinkGPSData(gdata.longitude.billionths);
 }
 
-void getRawGPSData()
+void encodeGPSData()
 {   
   getLAT();
   getLNG();
@@ -167,7 +167,7 @@ void getRawGPSData()
   _logRawGPSData();
 }
 
-String getCoordString(GPSCoord gData){
+String convertCoordString(GPSCoord gData){
   
   String gDataToReturn="";
   bool negative=false;
@@ -183,30 +183,27 @@ String getCoordString(GPSCoord gData){
     gData.deg=(gData.deg)&(0x7F);
   }
   gDataToReturn += (String((gData.deg),DEC)+"."+String(out,DEC));
-  _logCoordString(gData);
+
   return gDataToReturn;
 
 }
 
-void getAltitudeString(){
-   gs_current_altitude=String(gdata.altitude,DEC);
-}
-void getHDOPString(){
-   gs_current_hdop=String(gdata.hdop,DEC);
+void _convertGDataToString(){
+  gs_current_latitude = convertCoordString(gdata.latitude);
+  gs_current_longitude = convertCoordString(gdata.longitude);
+  gs_current_altitude=String(gdata.altitude,DEC);
+  gs_current_hdop=String(gdata.hdop,DEC);
+  gs_current_satellites=String(gdata.satellites,DEC);
+   _logCoord(gdata.latitude);
+   _logCoord(gdata.longitude);
+   _logAdditionalData();
 }
 
-void getSatellitesString(){
-   gs_current_satellites=String(gdata.satellites,DEC);
-}
 
 void _encodeLocation(){
   writeSerial("_encodeLocation called"); 
-  getRawGPSData();
-  gs_current_latitude = getCoordString(gdata.latitude);
-  gs_current_longitude = getCoordString(gdata.longitude);
-  getAltitudeString();
-  getHDOPString();
-  getSatellitesString();
+  encodeGPSData();
+  _convertGDataToString();
 
 }
 
@@ -221,7 +218,7 @@ void _getGPS()
 {
     writeSerial("_getGPS called");
     //basicGPSDebug();
-    _encodeGPS();
+    _processGPSData();
     //_encodeTestStream();
     //_encodeLocationSummary();
     _encodeLocation();

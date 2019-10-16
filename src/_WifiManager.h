@@ -75,9 +75,9 @@ bool isLastCredential(uint8_t index){
 
 
 
-station_config _loadNextCredential(uint8_t index ) {
+station_config_t _loadNextCredential(uint8_t index ) {
   AutoConnectCredential  ac(CREDENTIAL_OFFSET);
-  struct station_config  entry;
+  station_config_t  entry;
   String printcontent="";
    ac.load(index, &entry);
   printcontent += String("SSID Entry: ") + String((char *)entry.ssid)+" Password:"+ String((char *)entry.password);
@@ -89,7 +89,7 @@ station_config _loadNextCredential(uint8_t index ) {
 
 bool retryConnection(){
   writeSerial("retryConnection() called"); 
-  station_config sconfig;
+  station_config_t sconfig;
   for(uint8_t index=0;index <getCredentialNumber() ;index++)
   {
     sconfig = _loadNextCredential(index);
